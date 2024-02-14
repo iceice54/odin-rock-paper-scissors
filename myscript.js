@@ -29,51 +29,117 @@ function getPlayerChoice() {
     }
 }
 
+//this function plays a round and calls displayResult to show results on the page, it then returns the result to use in playGame
 function playRound(playerSelection, computerSelection) {
     //deal with invalid inputs
     if (playerSelection == null) {
-        console.log("You Lose! You entered an invalid input")
+        displayResult(playerSelection, computerSelection, "Invalid")
         return "Lose"
     }
 
     if (playerSelection == computerSelection) {
-        console.log(`It's a draw! ${playerSelection} ties with ${computerSelection}`)
+        displayResult(playerSelection, computerSelection, "Draw")
         return "Draw"
     } else if ((playerSelection == "Rock" && computerSelection == "Scissors")
     || (playerSelection == "Paper" && computerSelection == "Rock")
     || (playerSelection == "Scissors" && computerSelection == "Paper")) {
-        console.log(`You Win! ${playerSelection} beats ${computerSelection}`)
+        displayResult(playerSelection, computerSelection, "Win")
         return "Win"
     } else {
-        console.log(`You Lose! ${computerSelection} beats ${playerSelection}`)
+        displayResult(playerSelection, computerSelection, "Lose")
         return "Lose"
     }
 }
 
-function playGame() {
-    let playerScore = 0
-    let computerScore = 0
-    //call playRound 5 times for a game with 5 rounds
-    for (let i = 0; i < 5; i++) {
-        console.log(`Your score is ${playerScore} and the computer's score is ${computerScore}. ${5-i} rounds left!`)
-        let result = playRound(getPlayerChoice(), getComputerChoice());
-        //no one gains or loses points for draw
-        if (result == "Draw") {
-            continue
-        } else if (result == "Win") {
-            playerScore += 1
-        } else if (result == "Lose") {
-            computerScore += 1
-        }        
+//this function creates a p element for the result of playRound and displays it on the page
+function displayResult(playerSelection, computerSelection, result) {
+    const resultsDiv = document.querySelector("#results");
+
+    if (result == "Invalid") {
+        let resultText = document.createElement('p');
+        resultText.textContent = "You Lose! You entered an invalid input";
+        resultsDiv.appendChild(resultText);
     }
 
-    if (playerScore == computerScore) {
-        console.log(`Your score is ${playerScore} and the computer's score is ${computerScore}. It's a tie!`)
-    } else if (playerScore > computerScore) {
-        console.log(`Your score is ${playerScore} and the computer's score is ${computerScore}. You win!`)
-    } else if (computerScore > playerScore) {
-        console.log(`Your score is ${playerScore} and the computer's score is ${computerScore}. You lose!`)
+    if (result == "Draw") {
+        let resultText = document.createElement('p');
+        resultText.textContent = `It's a draw! ${playerSelection} ties with ${computerSelection}`;
+        resultsDiv.appendChild(resultText);
+    }
+
+    if (result == "Win") {
+        let resultText = document.createElement('p');
+        resultText.textContent = `You Win! ${playerSelection} beats ${computerSelection}`;
+        resultsDiv.appendChild(resultText);
+    }
+
+    if (result == "Lose") {
+        let resultText = document.createElement('p');
+        resultText.textContent = `You Lose! ${computerSelection} beats ${playerSelection}`;
+        resultsDiv.appendChild(resultText);
     }
 }
 
-playGame()
+function playGame() {
+    const resultsDiv = document.querySelector("#results");
+
+    let roundsPlayed = 0
+    let playerScore = 0
+    let computerScore = 0
+
+    let result
+    //using event delegation
+    let playerOptions = document.querySelector("#player-options");
+
+    playerOptions.addEventListener('click', function clickEvent(event) {
+        let target = event.target;
+
+        //save the return value of playRound to use in calculating playerScore
+        switch (target.id) {
+            case 'rock': {
+                result = playRound("Rock", getComputerChoice())
+                break
+            }
+            case 'paper': {
+                result = playRound("Paper", getComputerChoice())
+                break
+            }
+            case 'scissors': {
+                result = playRound("Scissors", getComputerChoice())
+                break
+            }
+        }
+
+        if (result == "Win") {
+            playerScore += 1
+        } else if (result == "Lose") {
+            computerScore += 1
+        }     
+
+        roundsPlayed++
+
+        //this creates a p element to display the current score and number of rounds left on page
+        let scoreText = document.createElement('p');
+        scoreText.textContent = `Your score is ${playerScore} and the computer's score is ${computerScore}. ${5-roundsPlayed} rounds left!`;
+        resultsDiv.appendChild(scoreText)
+
+        //since each playGame only lasts for 5 rounds, once 5 rounds is reached, show result of playGame on the page
+        if (roundsPlayed == 5) {
+            let gameResult = document.createElement('p');
+            if (playerScore == computerScore) {
+                gameResult.textContent = `The game has ended! Your score is ${playerScore} and the computer's score is ${computerScore}. It's a tie!`
+            } else if (playerScore > computerScore) {
+                gameResult.textContent = `The game has ended! Your score is ${playerScore} and the computer's score is ${computerScore}. You win!`
+            } else if (computerScore > playerScore) {
+                gameResult.textContent = `The game has ended! Your score is ${playerScore} and the computer's score is ${computerScore}. You lose!`
+            }
+            resultsDiv.appendChild(gameResult);
+            //this removes the click event listener on the options, stopping the game from continuing
+            playerOptions.removeEventListener('click', clickEvent)
+        }
+    })
+
+    
+}
+
+playGame();
